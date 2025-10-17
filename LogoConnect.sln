@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.14.36603.0 d17.14
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LogoConnect", "LogoConnect\LogoConnect.csproj", "{FF0BA0FC-722E-49DE-B0BA-7561CDC7208F}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{FF0BA0FC-722E-49DE-B0BA-7561CDC7208F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FF0BA0FC-722E-49DE-B0BA-7561CDC7208F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FF0BA0FC-722E-49DE-B0BA-7561CDC7208F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FF0BA0FC-722E-49DE-B0BA-7561CDC7208F}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {C8A77230-1C76-4FD6-B2C9-3F68B1A4FC39}
+	EndGlobalSection
+EndGlobal
