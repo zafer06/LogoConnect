@@ -1,0 +1,106 @@
+﻿@model List<LogoConnect.Models.WooOrder>
+@{
+    ViewData["Title"] = "WooCommerce Orders";
+}
+
+<h1>Siparişler</h1>
+
+@if(ViewBag.Error != null) {
+    <div class="alert alert-danger">@ViewBag.Error</div>
+}
+
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>
+                <input type="checkbox" id="selectAll" />
+            </th>
+            <th>ID</th>
+            <th>Tarih</th>
+            <th>Müşteri</th>
+            <th>Durum</th>
+            <th>Toplam</th>
+            <!--th>Ürünler</th-->
+            <th>Logo Durum</th> <!-- Aktarım durumu için yeni kolon -->
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var o in Model)
+        {
+            <tr>
+                <td>
+                    <input type="checkbox" name="selectedOrders" value="@o.Id" />
+                </td>
+                <td>@o.Id</td>
+                <td>@o.DateCreated?.ToString("yyyy-MM-dd HH:mm")</td>
+                <td>@(o.Billing.FirstName) @(o.Billing.LastName)</td>
+                <td>@o.Status</td>
+                <td>@o.Total</td>
+                <!--td>
+                    <ul>
+                        @foreach (var li in o.LineItems)
+                        {
+                            <li>@li.Name x @li.Quantity (@li.Total)</li>
+                        }
+                    </ul>
+                </td-->
+                <td>
+                    @* Örnek durum göstergesi: Logo’ya gönderim durumu *@
+                    @if (o.Status == "Success")
+                    {
+                        <span class="badge bg-success">Başarılı</span>
+                    }
+                    else if (o.Status == "Failed")
+                    {
+                        <span class="badge bg-danger">Hata</span>
+                    }
+                    else
+                    {
+                        <span class="badge bg-secondary">Beklemede</span>
+                    }
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<button id="sendToLogo" class="btn btn-primary mt-2">Seçilenleri Logo'ya Gönder</button>
+
+@section Scripts {
+    <script>
+        // Tümünü seçme checkbox'u
+        document.getElementById("selectAll").addEventListener("change", function() {
+            var checkboxes = document.getElementsByName("selectedOrders");
+            for (var i = 0; i < checkboxes.length; i++) {
+                checkboxes[i].checked = this.checked;
+            }
+        });
+
+        // Manuel gönderim butonu
+        document.getElementById("sendToLogo").addEventListener("click", function() {
+            var selected = [];
+            var checkboxes = document.getElementsByName("selectedOrders");
+            for (var i = 0; i < checkboxes.length; i++) {
+                if (checkboxes[i].checked) {
+                    selected.push(checkboxes[i].value);
+                }
+            }
+
+            if (selected.length === 0) {
+                alert("Lütfen en az bir sipariş seçin.");
+                return;
+            }
+
+            // AJAX veya form submit ile Controller'a gönder
+            fetch('@Url.Action("SendSelectedOrders", "Orders")', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'RequestVerificationToken': $('input[name="__RequestVerificationToken"]').val() },
+                body: JSON.stringify(selected)
+            }).then(res => res.json())
+            .then(data => {
+                alert(data.message);
+                location.reload(); // Sayfayı yenileyerek güncelle
+            });
+        });
+    </script>
+}
