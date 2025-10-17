@@ -1,10 +1,8 @@
+using LogoConnect;
 using LogoConnect.Models;
 using LogoConnect.Services;
 
 var builder = WebApplication.CreateBuilder(args);
-
-// Add services to the container.
-builder.Services.AddControllersWithViews();
 
 // Add WooService
 builder.Services.AddScoped<IWooService, WooService>();
@@ -23,6 +21,14 @@ builder.Services.AddHttpClient<IWooService, WooService>((sp, client) =>
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
+
+builder.Configuration
+       .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
+       .AddJsonFile($"appsettings.{builder.Environment.EnvironmentName}.json", optional: true)
+       .AddEnvironmentVariables();
+
+// LogoStore start
+LogoStatusStore.Load();
 
 var app = builder.Build();
 

@@ -14,17 +14,19 @@ namespace LogoConnect.Controllers
 
         public async Task<IActionResult> Index(int page = 1)
         {
-            try
-            {
-                var orders = await _wooService.GetOrdersAsync(perPage: 20, page: page);
-                return View(orders);
-            }
-            catch (Exception ex)
-            {
-                // Hata durumunda kullanıcıya gösterilebilir. Prod uygulamada logging ekle.
-                ViewBag.Error = ex.Message;
-                return View(new List<Models.WooOrder>());
-            }
+            int pageSize = 20;
+
+            // WooCommerce API’den sayfa sayfa sipariş çek
+            var orders = await _wooService.GetOrdersAsync(page);
+
+            // Toplam sipariş sayısını da alabiliriz, örnek: _wooService.GetTotalOrdersCount()
+            int totalOrders = await _wooService.GetTotalOrdersCountAsync();
+            int totalPages = (int)Math.Ceiling((double)totalOrders / pageSize);
+
+            ViewBag.CurrentPage = page;
+            ViewBag.TotalPages = totalPages;
+
+            return View(orders);
         }
 
         // Seçilen siparişleri gönder
@@ -40,18 +42,31 @@ namespace LogoConnect.Controllers
 
             foreach (var order in orders)
             {
-                bool result = false;    // _logoService.SendOrder(order);
-                if (result)
+                try
                 {
-                    order.Status = "Success";
-                    successCount++;
+                    //bool result = _logoService.SendOrder(order);
+                    
+                    bool result = false;
+                    if (result)
+                    {
+                        order.Status = "Success";
+                        successCount++;
+                    }
+                    else
+                    {
+                        order.Status = "Failed";
+                        failCount++;
+                    }
+
+                    if (result)
+                        LogoStatusStore.SetStatus(order.Id, "Success");
+                    else
+                        LogoStatusStore.SetStatus(order.Id, "Failed", "Bilinmeyen hata");
                 }
-                else
+                catch (Exception ex)
                 {
-                    order.Status = "Failed";
-                    failCount++;
+                    LogoStatusStore.SetStatus(order.Id, "Failed", ex.Message);
                 }
-                // Durumu DB'ye kaydetmek istersen burada yapabilirsin
             }
 
             return Json(new { message = $"Gönderim tamamlandı. Başarılı: {successCount}, Hatalı: {failCount}" });

@@ -1,6 +1,7 @@
 ﻿using LogoConnect.Models;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.Extensions.Options;
+using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
@@ -10,8 +11,9 @@ namespace LogoConnect.Services
 {
     public interface IWooService
     {
-        Task<IEnumerable<WooOrder>> GetOrdersAsync(int perPage = 20, int page = 1, CancellationToken ct = default);
+        Task<IEnumerable<WooOrder>> GetOrdersAsync(int page = 1, int perPage = 20, CancellationToken ct = default);
         Task<List<WooOrder>> GetOrdersByIdsAsync(List<int> selectedIds);
+        Task<int> GetTotalOrdersCountAsync();
     }
 
     public class WooService : IWooService
@@ -25,7 +27,7 @@ namespace LogoConnect.Services
             _options = options.Value;
         }
 
-        public async Task<IEnumerable<WooOrder>> GetOrdersAsync(int perPage = 20, int page = 1, CancellationToken ct = default)
+        public async Task<IEnumerable<WooOrder>> GetOrdersAsync(int page = 1, int perPage = 20, CancellationToken ct = default)
         {
             // Build URL (Aynı kalır)
             var url = $"orders?per_page={perPage}&page={page}&consumer_key={Uri.EscapeDataString(_options.ConsumerKey)}&consumer_secret={Uri.EscapeDataString(_options.ConsumerSecret)}";
@@ -88,6 +90,27 @@ namespace LogoConnect.Services
             }
 
             return orders;
+        }
+
+        // Toplam sipariş sayısını getir
+        public async Task<int> GetTotalOrdersCountAsync()
+        {
+            var url = $"orders/?per_page=1&consumer_key={Uri.EscapeDataString(_options.ConsumerKey)}&consumer_secret={Uri.EscapeDataString(_options.ConsumerSecret)}";
+            var request = new HttpRequestMessage(HttpMethod.Get, url); // sadece 1 sipariş çekiyoruz
+            var response = await _client.SendAsync(request);
+
+            response.EnsureSuccessStatusCode();
+
+            // WooCommerce toplam sipariş sayısını header'dan alır
+            if (response.Headers.TryGetValues("X-WP-Total", out var values))
+            {
+                var totalStr = values.FirstOrDefault();
+                if (int.TryParse(totalStr, out int total))
+                    return total;
+            }
+
+            // Eğer header yoksa 0 döndür
+            return 0;
         }
     }
 }
